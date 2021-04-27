@@ -1,6 +1,10 @@
 
-
-// OFFICIAL WORKING PROTOTYPE
+// Copyright (c) 2021, NSDAPS
+// http://www.nsdaps.edu.ph/
+//
+// Use of this source code is governed by an MIT-style
+// license that can be found in the LICENSE file or at
+// https://opensource.org/licenses/MIT.
 
 // Link libraries
 #include <Wire.h>
@@ -32,9 +36,6 @@ int yellowLed = 4;
 // Buzzer Setup
 int speakerPin = 8;
 
-// Music Setup
-int NOTE_SUSTAIN = 100;
-
 void setup()
 {
   Serial.begin(9600);
@@ -64,12 +65,10 @@ void loop()
 {
   // Prepare key - all keys are set to FFFFFFFFFFFFh at chip delivery from the factory.
   MFRC522::MIFARE_Key key;
-  for (byte i = 0; i < 6; i++) key.keyByte[i] = 0xFF;
-
-  //some variables we need
+  MFRC522::StatusCode status;
   byte block;
   byte len;
-  MFRC522::StatusCode status;
+  for (byte i = 0; i < 6; i++) key.keyByte[i] = 0xFF;
 
   digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
@@ -125,10 +124,8 @@ void loop()
     byte buffer1[18];
     block = 4;
     len = 18;
-    status = mfrc522.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A, 4, &key, &(mfrc522.uid)); //line 834 of MFRC522.cpp file
+    status = mfrc522.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A, 4, &key, &(mfrc522.uid));
     if (status != MFRC522::STATUS_OK) {
-      Serial.print(F("Authentication failed: "));
-      Serial.println(mfrc522.GetStatusCodeName(status));
       mfrc522.PICC_HaltA();
       mfrc522.PCD_StopCrypto1();
       return;
@@ -136,14 +133,11 @@ void loop()
 
     status = mfrc522.MIFARE_Read(block, buffer1, &len);
     if (status != MFRC522::STATUS_OK) {
-      Serial.print(F("Reading failed: "));
-      Serial.println(mfrc522.GetStatusCodeName(status));
       mfrc522.PICC_HaltA();
       mfrc522.PCD_StopCrypto1();
       return;
     }
 
-    //PRINT School ID
     for (uint8_t i = 0; i < 16; i++)
     {
       if (buffer1[i] != 32)
@@ -160,8 +154,6 @@ void loop()
 
     status = mfrc522.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A, 1, &key, &(mfrc522.uid)); //line 834
     if (status != MFRC522::STATUS_OK) {
-      Serial.print(F("Authentication failed: "));
-      Serial.println(mfrc522.GetStatusCodeName(status));
       mfrc522.PICC_HaltA();
       mfrc522.PCD_StopCrypto1();
       return;
@@ -169,8 +161,6 @@ void loop()
 
     status = mfrc522.MIFARE_Read(block, buffer2, &len);
     if (status != MFRC522::STATUS_OK) {
-      Serial.print(F("Reading failed: "));
-      Serial.println(mfrc522.GetStatusCodeName(status));
       mfrc522.PICC_HaltA();
       mfrc522.PCD_StopCrypto1();
       return;
@@ -187,7 +177,6 @@ void loop()
     res.concat(content.substring(1) + "|");
     res.concat(idString + "|");
     res.concat(surname);
-
 
     if (idString == "" || surname == "") {
       resetIndicators();
@@ -211,7 +200,6 @@ void loop()
       noTone(speakerPin);
       return;
     }
-
 
     Serial.println(res);
 
@@ -302,26 +290,4 @@ void resetIndicators() {
   digitalWrite(yellowLed, LOW);
   noTone(speakerPin);
   digitalWrite(speakerPin, LOW);
-}
-
-void Serialprintln(const char* input...) {
-  va_list args;
-  va_start(args, input);
-  for (const char* i = input; *i != 0; ++i) {
-    if (*i != '%') {
-      Serial.print(*i);
-      continue;
-    }
-    switch (*(++i)) {
-      case '%': Serial.print('%'); break;
-      case 's': Serial.print(va_arg(args, char*)); break;
-      case 'd': Serial.print(va_arg(args, int), DEC); break;
-      case 'b': Serial.print(va_arg(args, int), BIN); break;
-      case 'o': Serial.print(va_arg(args, int), OCT); break;
-      case 'x': Serial.print(va_arg(args, int), HEX); break;
-      case 'f': Serial.print(va_arg(args, double), 2); break;
-    }
-  }
-  Serial.println();
-  va_end(args);
 }
