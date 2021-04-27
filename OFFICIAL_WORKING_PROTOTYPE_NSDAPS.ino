@@ -68,7 +68,8 @@ void loop()
   MFRC522::StatusCode status;
   byte block;
   byte len;
-  for (byte i = 0; i < 6; i++) key.keyByte[i] = 0xFF;
+  for (byte i = 0; i < 6; i++)
+    key.keyByte[i] = 0xFF;
 
   digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
@@ -82,7 +83,8 @@ void loop()
 
   lcd.clear();
 
-  if (distanceCm >= 100) {
+  if (distanceCm >= 100)
+  {
     String content = "";
     String idString = "";
     String surname = "";
@@ -90,27 +92,27 @@ void loop()
     resetIndicators();
 
     digitalWrite(speakerPin, LOW);
-    lcd.setCursor (0, 0);
+    lcd.setCursor(0, 0);
     lcd.print("Please Scan");
-    lcd.setCursor (0, 1);
+    lcd.setCursor(0, 1);
     lcd.print("your ID");
     digitalWrite(yellowLed, HIGH);
 
-    if ( ! mfrc522.PICC_IsNewCardPresent())
+    if (!mfrc522.PICC_IsNewCardPresent())
     {
       delay(500);
       return;
     }
 
-    if ( ! mfrc522.PICC_ReadCardSerial())
+    if (!mfrc522.PICC_ReadCardSerial())
     {
       delay(500);
       return;
     }
 
-    lcd.setCursor (0, 0);
+    lcd.setCursor(0, 0);
     lcd.print("Verifying ID");
-    lcd.setCursor (0, 1);
+    lcd.setCursor(0, 1);
     lcd.print("Please wait...");
     digitalWrite(yellowLed, HIGH);
 
@@ -125,14 +127,16 @@ void loop()
     block = 4;
     len = 18;
     status = mfrc522.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A, 4, &key, &(mfrc522.uid));
-    if (status != MFRC522::STATUS_OK) {
+    if (status != MFRC522::STATUS_OK)
+    {
       mfrc522.PICC_HaltA();
       mfrc522.PCD_StopCrypto1();
       return;
     }
 
     status = mfrc522.MIFARE_Read(block, buffer1, &len);
-    if (status != MFRC522::STATUS_OK) {
+    if (status != MFRC522::STATUS_OK)
+    {
       mfrc522.PICC_HaltA();
       mfrc522.PCD_StopCrypto1();
       return;
@@ -143,7 +147,8 @@ void loop()
       if (buffer1[i] != 32)
       {
         char tmp_idChar = char(buffer1[i]);
-        if (tmp_idChar != '\n' && tmp_idChar != '\r') {
+        if (tmp_idChar != '\n' && tmp_idChar != '\r')
+        {
           idString += tmp_idChar;
         }
       }
@@ -153,22 +158,26 @@ void loop()
     block = 1;
 
     status = mfrc522.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A, 1, &key, &(mfrc522.uid)); //line 834
-    if (status != MFRC522::STATUS_OK) {
+    if (status != MFRC522::STATUS_OK)
+    {
       mfrc522.PICC_HaltA();
       mfrc522.PCD_StopCrypto1();
       return;
     }
 
     status = mfrc522.MIFARE_Read(block, buffer2, &len);
-    if (status != MFRC522::STATUS_OK) {
+    if (status != MFRC522::STATUS_OK)
+    {
       mfrc522.PICC_HaltA();
       mfrc522.PCD_StopCrypto1();
       return;
     }
 
-    for (uint8_t i = 0; i < 16; i++) {
+    for (uint8_t i = 0; i < 16; i++)
+    {
       char tmp_surnameChar = char(buffer2[i]);
-      if (tmp_surnameChar != '\n' && tmp_surnameChar != '\r') {
+      if (tmp_surnameChar != '\n' && tmp_surnameChar != '\r')
+      {
         surname += tmp_surnameChar;
       }
     }
@@ -178,11 +187,12 @@ void loop()
     res.concat(idString + "|");
     res.concat(surname);
 
-    if (idString == "" || surname == "") {
+    if (idString == "" || surname == "")
+    {
       resetIndicators();
-      lcd.setCursor (0, 0);
+      lcd.setCursor(0, 0);
       lcd.print("Invalid ID");
-      lcd.setCursor (0, 1);
+      lcd.setCursor(0, 1);
       lcd.print("Format");
       digitalWrite(redLed, HIGH);
       mfrc522.PICC_HaltA();
@@ -213,20 +223,23 @@ void loop()
 
     // Change LCD Screen
     resetIndicators();
-    lcd.setCursor (0, 0);
+    lcd.setCursor(0, 0);
     lcd.print("Awaiting for");
-    lcd.setCursor (0, 1);
+    lcd.setCursor(0, 1);
     lcd.print("Admin Response");
 
-    while (true) {
+    while (true)
+    {
       int boolResponseFromServer = Serial.read();
-      if (boolResponseFromServer != -1 && boolResponseFromServer != 10) {
-        if (boolResponseFromServer == 49) { // Indicator for 1
+      if (boolResponseFromServer != -1 && boolResponseFromServer != 10)
+      {
+        if (boolResponseFromServer == 49)
+        { // Indicator for 1
           resetIndicators();
 
-          lcd.setCursor (0, 0);
+          lcd.setCursor(0, 0);
           lcd.print(idString);
-          lcd.setCursor (0, 1);
+          lcd.setCursor(0, 1);
           lcd.print(String("Welcome, " + surname));
           digitalWrite(greenLed, HIGH);
           playSuccessSound();
@@ -234,11 +247,12 @@ void loop()
           Serial.flush();
           break;
         }
-        else if (boolResponseFromServer == 48)  { // Indicator for 0
+        else if (boolResponseFromServer == 48)
+        { // Indicator for 0
           resetIndicators();
-          lcd.setCursor (0, 0);
+          lcd.setCursor(0, 0);
           lcd.print("Unauthorized");
-          lcd.setCursor (0, 1);
+          lcd.setCursor(0, 1);
           lcd.print("Access");
           digitalWrite(redLed, HIGH);
           playErrorSound();
@@ -247,33 +261,37 @@ void loop()
         }
       }
     }
-  } else {
+  }
+  else
+  {
     resetIndicators();
     digitalWrite(speakerPin, HIGH);
     digitalWrite(redLed, HIGH);
-    lcd.setCursor (0, 0);
+    lcd.setCursor(0, 0);
     lcd.print("Social Distancing");
-    lcd.setCursor (0, 1);
+    lcd.setCursor(0, 1);
     lcd.print("Not Observed");
     delay(1000);
     lcd.clear();
-    lcd.setCursor (0, 0);
+    lcd.setCursor(0, 0);
     lcd.print("Step Back");
-    lcd.setCursor (0, 1);
-    lcd.print(String(100 - distanceCm)  + " cm away");
+    lcd.setCursor(0, 1);
+    lcd.print(String(100 - distanceCm) + " cm away");
   }
   Serial.flush();
   delay(1000);
 }
 
-void playSuccessSound() {
+void playSuccessSound()
+{
   digitalWrite(speakerPin, HIGH);
   delay(175);
   noTone(speakerPin);
   delay(300);
 }
 
-void playErrorSound() {
+void playErrorSound()
+{
   tone(speakerPin, NOTE_C3);
   delay(150);
   tone(speakerPin, NOTE_G4);
@@ -282,7 +300,8 @@ void playErrorSound() {
   delay(700);
 }
 
-void resetIndicators() {
+void resetIndicators()
+{
   Serial.flush();
   lcd.clear();
   digitalWrite(greenLed, LOW);
